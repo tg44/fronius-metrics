@@ -1,5 +1,5 @@
 {
-  "name": "fronius-solar2mqtt",
+  "name": "fronius-metrics",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -10,7 +10,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "fast-xml-parser": "^3.19.0",
+    "he": "^1.2.0",
     "mqtt": "^4.2.6",
-    "node-fronius-solar": "^0.0.10"
+    "node-fronius-solar": "^0.0.10",
+    "prom-client": "^13.1.0"
   }
 }
