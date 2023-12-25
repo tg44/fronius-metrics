@@ -180,13 +180,13 @@ async function getAndSend() {
         await mqttClient.publish(mqttTopic, JSON.stringify(data))
     }
     if (httpEnabled) {
-        if (inverterHost) totalWatt.set(data.total_watt ?? 0)
-        if (inverterHost) actualGrid.set(data.actual_grid ?? 0)
-        if (inverterHost) actualLoad.set(data.actual_load ?? 0)
-        if (inverterHost) actualPV.set(data.actual_pv ?? 0)
-        if (heaterHost) heaterHeatPower.set(data.heater_heat_power ?? 0)
-        if (heaterHost) heaterTemp.set(data.heater_temp ?? 0)
-        if (heaterHost) heaterReglerOut.set(data.heater_regler_out ?? 0)
+        if (inverterHost) totalWatt.set(data.total_watt || 0)
+        if (inverterHost) actualGrid.set(data.actual_grid || 0)
+        if (inverterHost) actualLoad.set(data.actual_load || 0)
+        if (inverterHost) actualPV.set(data.actual_pv || 0)
+        if (heaterHost) heaterHeatPower.set(data.heater_heat_power || 0)
+        if (heaterHost) heaterTemp.set(data.heater_temp || 0)
+        if (heaterHost) heaterReglerOut.set(data.heater_regler_out || 0)
     }
 }
 
