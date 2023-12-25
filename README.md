@@ -18,14 +18,14 @@ Also you need to add `export INVERTER_HOST=""`.
 ### Docker and compose
 For docker you can run;
 ```
-docker run -e MQTT_ENABLED=true -e MQTT_URL="mqtt://localhost:1883" -e MQTT_TOPIC=tele/solar -e INVERTER_HOST="192.168.1.254" fronius-metrics
+docker run -e MQTT_ENABLED=true -e MQTT_URL="mqtt://localhost:1883" -e MQTT_TOPIC=tele/solar -e INVERTER_HOST="192.168.1.254" ghcr.io/tg44/fronius-metrics
 ```
 For docker compose;
 ```
 version: '3.1'
 services:
   fronius-solar2mqtt:
-    image: tg44/fronius-metrics
+    image: ghcr.io/tg44/fronius-metrics
     restart: unless-stopped
     environment:
       - INVERTER_HOST="192.168.1.254" #inverter ip, can be left out
