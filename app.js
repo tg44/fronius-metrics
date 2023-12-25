@@ -25,46 +25,46 @@ const inverterHost = process.env.INVERTER_HOST
 const heaterHost = process.env.HEATER_HOST
 
 const inverterOptions = {
-  host: inverterHost,
-  port: 80,
-  deviceId: 1,
-  version: 1
+    host: inverterHost,
+    port: 80,
+    deviceId: 1,
+    version: 1
 }
 
 const additionalMqttParams = {
-  username: mqttUser,
-  clientId: mqttClientId,
-  password: mqttPassword
+    username: mqttUser,
+    clientId: mqttClientId,
+    password: mqttPassword
 }
 
 const xmlParseOptions = {
-  attributeNamePrefix : "",
-  attrNodeName: false, //default is 'false'
-  textNodeName : "text",
-  ignoreAttributes : false,
-  ignoreNameSpace : true,
-  allowBooleanAttributes : false,
-  parseNodeValue : true,
-  parseAttributeValue : true,
-  trimValues: true,
-  cdataTagName: "__cdata", //default is 'false'
-  cdataPositionChar: "\\c",
-  parseTrueNumberOnly: false,
-  arrayMode: false, //"strict"
-  attrValueProcessor: (val, attrName) => he.decode(val, {isAttributeValue: true}),//default is a=>a
-  tagValueProcessor : (val, tagName) => he.decode(val), //default is a=>a
-  stopNodes: ["parse-me-as-string"]
+    attributeNamePrefix: "",
+    attrNodeName: false, //default is 'false'
+    textNodeName: "text",
+    ignoreAttributes: false,
+    ignoreNameSpace: true,
+    allowBooleanAttributes: false,
+    parseNodeValue: true,
+    parseAttributeValue: true,
+    trimValues: true,
+    cdataTagName: "__cdata", //default is 'false'
+    cdataPositionChar: "\\c",
+    parseTrueNumberOnly: false,
+    arrayMode: false, //"strict"
+    attrValueProcessor: (val, attrName) => he.decode(val, {isAttributeValue: true}),//default is a=>a
+    tagValueProcessor: (val, tagName) => he.decode(val), //default is a=>a
+    stopNodes: ["parse-me-as-string"]
 };
 
 let mqttClient = null
 
 console.info('App started')
 
-if(mqttEnabled) {
-  mqttClient = mqtt.connect(mqttUrl, additionalMqttParams)
-  mqttClient.on('connect', () => {
-    console.info('MQTT connected to ' + mqttUrl)
-  })
+if (mqttEnabled) {
+    mqttClient = mqtt.connect(mqttUrl, additionalMqttParams)
+    mqttClient.on('connect', () => {
+        console.info('MQTT connected to ' + mqttUrl)
+    })
 }
 
 let totalWatt = null
@@ -75,117 +75,125 @@ let heaterTemp = null
 let heaterHeatPower = null
 let heaterReglerOut = null
 
-if(httpEnabled) {
-  const app = express()
+if (httpEnabled) {
+    const app = express()
 
-  const collectDefaultMetrics = client.collectDefaultMetrics;
-  collectDefaultMetrics({prefix: nodeMetricsPrefix})
+    const collectDefaultMetrics = client.collectDefaultMetrics;
+    collectDefaultMetrics({prefix: nodeMetricsPrefix})
 
-  const register = client.register;
+    const register = client.register;
 
-  totalWatt = new Gauge({
-    name: prefix +'total_watt',
-    help: 'totalWatt',
-  });
+    totalWatt = new Gauge({
+        name: prefix + 'total_watt',
+        help: 'totalWatt',
+    });
 
-  actualGrid = new Gauge({
-    name: prefix +'actual_grid',
-    help: 'actualGrid',
-  });
+    actualGrid = new Gauge({
+        name: prefix + 'actual_grid',
+        help: 'actualGrid',
+    });
 
-  actualLoad = new Gauge({
-    name: prefix +'actual_load',
-    help: 'actualLoad',
-  });
+    actualLoad = new Gauge({
+        name: prefix + 'actual_load',
+        help: 'actualLoad',
+    });
 
-  actualPV = new Gauge({
-    name: prefix +'actual_pv',
-    help: 'actualPV',
-  });
+    actualPV = new Gauge({
+        name: prefix + 'actual_pv',
+        help: 'actualPV',
+    });
 
-  heaterTemp = new Gauge({
-    name: prefix +'heater_temp',
-    help: 'heaterTemp',
-  });
+    heaterTemp = new Gauge({
+        name: prefix + 'heater_temp',
+        help: 'heaterTemp',
+    });
 
-  heaterHeatPower = new Gauge({
-    name: prefix +'heater_heat_power',
-    help: 'heaterHeatPower',
-  });
+    heaterHeatPower = new Gauge({
+        name: prefix + 'heater_heat_power',
+        help: 'heaterHeatPower',
+    });
 
-  heaterReglerOut = new Gauge({
-    name: prefix +'heater_regler_out',
-    help: 'heaterReglerOut',
-  });
+    heaterReglerOut = new Gauge({
+        name: prefix + 'heater_regler_out',
+        help: 'heaterReglerOut',
+    });
 
-  app.get('/', (req, res) => {
-    res.send('This is an empty index, you want to go to the <a href="/metrics">metrics</a> endpoint for data!')
-  })
+    app.get('/', (req, res) => {
+        res.send('This is an empty index, you want to go to the <a href="/metrics">metrics</a> endpoint for data!')
+    })
 
-  app.get('/metrics', async (req, res) => {
-    try {
-      res.set('Content-Type', register.contentType);
-      res.end(await register.metrics());
-    } catch (ex) {
-      res.status(500).end(ex);
-    }
-  })
+    app.get('/metrics', async (req, res) => {
+        try {
+            res.set('Content-Type', register.contentType);
+            res.end(await register.metrics());
+        } catch (ex) {
+            res.status(500).end(ex);
+        }
+    })
 
-  // Start the things
-  app.listen(port, () => {
-    console.log(`Exporter app listening at http://localhost:${port}`)
-  })
+    // Start the things
+    app.listen(port, () => {
+        console.log(`Exporter app listening at http://localhost:${port}`)
+    })
 }
 
 
 async function getData() {
-  let inverterStats = {}
-  if(inverterHost) {
-    const inverterJson = await fronius.GetPowerFlowRealtimeDataData(inverterOptions)
-    inverterStats = {
-      total_watt: inverterJson.Body.Data.Site.E_Total,
-      actual_grid: inverterJson.Body.Data.Site.P_Grid,
-      actual_load: inverterJson.Body.Data.Site.P_Load,
-      actual_pv: inverterJson.Body.Data.Site.P_PV,
+    let inverterStats = {}
+    if (inverterHost) {
+        try {
+            const inverterJson = await fronius.GetPowerFlowRealtimeDataData(inverterOptions)
+            inverterStats = {
+                total_watt: inverterJson.Body.Data.Site.E_Total,
+                actual_grid: inverterJson.Body.Data.Site.P_Grid,
+                actual_load: inverterJson.Body.Data.Site.P_Load,
+                actual_pv: inverterJson.Body.Data.Site.P_PV,
+            }
+        } catch (e) {
+            console.error(e)
+        }
     }
-  }
-  let heaterstats = {}
-  if(heaterHost) {
-    const heaterResp = await axios.get("http://" + heaterHost + "/values.xml")
-    const heaterJson = parser.parse(heaterResp.data, xmlParseOptions);
-    heaterstats = {
-      heater_temp: +heaterJson.values.value.find(x => x.id === `valTemperatur`).text.split(" ")[0],
-      heater_heat_power: +heaterJson.values.value.find(x => x.id === `valHeatPower`).text.split(" ")[0],
-      heater_regler_out: +heaterJson.values.value.find(x => x.id === `valreglerout`).text.split(" ")[0],
+    let heaterstats = {}
+    if (heaterHost) {
+        try {
+            const heaterResp = await axios.get("http://" + heaterHost + "/values.xml")
+            const heaterJson = parser.parse(heaterResp.data, xmlParseOptions);
+            heaterstats = {
+                heater_temp: +heaterJson.values.value.find(x => x.id === `valTemperatur`).text.split(" ")[0],
+                heater_heat_power: +heaterJson.values.value.find(x => x.id === `valHeatPower`).text.split(" ")[0],
+                heater_regler_out: +heaterJson.values.value.find(x => x.id === `valreglerout`).text.split(" ")[0],
+            }
+        } catch (e) {
+            console.error(e)
+        }
     }
-  }
-  return {
-    ...inverterStats,
-    ...heaterstats,
-  }
+    return {
+        ...inverterStats,
+        ...heaterstats,
+    }
 }
 
 async function getAndSend() {
-  const data = await getData()
-  //console.log(data)
-  if(mqttEnabled) {
-    await mqttClient.publish(mqttTopic, JSON.stringify(data))
-  }
-  if(httpEnabled) {
-    if(inverterHost) totalWatt.set(data.total_watt)
-    if(inverterHost) actualGrid.set(data.actual_grid)
-    if(inverterHost) actualLoad.set(data.actual_load)
-    if(inverterHost) actualPV.set(data.actual_pv)
-    if(heaterHost) heaterHeatPower.set(data.heater_heat_power)
-    if(heaterHost) heaterTemp.set(data.heater_temp)
-    if(heaterHost) heaterReglerOut.set(data.heater_regler_out)
-  }
+    const data = await getData()
+    //console.log(data)
+    if (mqttEnabled) {
+        await mqttClient.publish(mqttTopic, JSON.stringify(data))
+    }
+    if (httpEnabled) {
+        if (inverterHost) totalWatt.set(data.total_watt ?? 0)
+        if (inverterHost) actualGrid.set(data.actual_grid ?? 0)
+        if (inverterHost) actualLoad.set(data.actual_load ?? 0)
+        if (inverterHost) actualPV.set(data.actual_pv ?? 0)
+        if (heaterHost) heaterHeatPower.set(data.heater_heat_power ?? 0)
+        if (heaterHost) heaterTemp.set(data.heater_temp ?? 0)
+        if (heaterHost) heaterReglerOut.set(data.heater_regler_out ?? 0)
+    }
 }
 
 
 getAndSend()
 
 setInterval(() => {
-  getAndSend();
-}, refreshRateSeconds*1000);
+    getAndSend();
+}, refreshRateSeconds * 1000);
 
